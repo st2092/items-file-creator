@@ -1,4 +1,5 @@
 import java.net.*;
+import java.sql.SQLException;
 import java.io.*;
 import javax.json.*;
 
@@ -11,9 +12,10 @@ public class RsPriceManager {
     private static String API_RESPONSE_PRICE = "price";
     private static String API_RESPONSE_NAME = "name";
     private static String API_RESPONSE_CURRENT_PRICE = "current";
+    private RsDatabase database;
     
-    public RsPriceManager() {
-        // do nothing;
+    public RsPriceManager() throws SQLException {
+        database = new RsDatabase();
     }
 
     /**
@@ -34,6 +36,7 @@ public class RsPriceManager {
             printItemSpecifics(jsonDataObject);
         } catch (IOException e) {
         	// item ID is invalid
+        	print(itemID + " is an invalid ID.");
         }
     }
     
@@ -127,7 +130,6 @@ public class RsPriceManager {
     	 * @return long		number representation of the price result from RS API
     	 */
     	private long convertPriceFromApiToLong(String priceStr) {
-    		print("Convert priceStr: " + priceStr);
     		long price = -1;
     		if (priceStr.contains(".") && priceStr.contains("k")) {
     			// e.g. 10.1k
