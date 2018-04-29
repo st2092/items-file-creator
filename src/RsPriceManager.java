@@ -22,9 +22,50 @@ public class RsPriceManager {
      * Sends a query for the item associated with the item ID to the RS API.
      * @param itemID	the id of the item to get information about
      * @throws MalformedURLException	happens when a bad URL is created for the RS API
+     * @throws SQLException 
      */
-    public void queryItem(long itemID) throws MalformedURLException {
-        String itemQueryURL = RS_GE_API_URL + itemID;
+    public void queryItem(int itemID) throws MalformedURLException, SQLException {
+    	if (database.containsItem(itemID)) {
+    		print("Item #" + itemID + " already in database.");
+    		return;
+    	}
+        JsonObject rsApiResponse = getItemDataFromApi(itemID);
+        
+        if (rsApiResponse != null) {
+            printItemSpecifics(rsApiResponse);
+        } else  {
+        	// item ID is invalid
+        	print(itemID + " is an invalid ID.");
+        }
+    }
+    
+    public void queryItemAndAddToDatabase(int itemID) throws MalformedURLException, SQLException {
+    	if (database.containsItem(itemID)) {
+    		print("Item #" + itemID + " already in database.");
+    		return;
+    	}
+    	JsonObject rsApiResponse = getItemDataFromApi(itemID);
+    	
+    	if (rsApiResponse != null) {
+    		JsonObject itemInfoObj = rsApiResponse.getJsonObject("item");
+    		Item item = new Item (itemInfoObj);
+    		try {
+				database.addItem(item.getName(), item.getId());
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
+    
+    /**
+     * Queries the RS API for information about the item pertaining to the id.
+     * @param itemID	the id of the item to get information about
+     * @return JsonObject	the response from the RS API
+     * @throws MalformedURLException
+     */
+    private JsonObject getItemDataFromApi(int itemID) throws MalformedURLException {
+    	String itemQueryURL = RS_GE_API_URL + itemID;
         URL requestURL = new URL(itemQueryURL);
 		
         try {
@@ -32,14 +73,14 @@ public class RsPriceManager {
             JsonReader jsonDataReader = Json.createReader(responseData);
 
             JsonObject jsonDataObject = jsonDataReader.readObject();
-            
-            printItemSpecifics(jsonDataObject);
+            return jsonDataObject;
         } catch (IOException e) {
         	// item ID is invalid
         	print(itemID + " is an invalid ID.");
         }
+        
+        return null;
     }
-    
     /**
      * Prints out to console the information of the item retrieved from RS API.
      * @param jsonDataFromApi
@@ -64,7 +105,7 @@ public class RsPriceManager {
     /**
      * Item class to represent a RS item. Contains values such as the id, name, prices, and margins for buying and selling.
      */
-    private class Item {
+    class Item {
     	private int id;
     	private String name;
     	private long currentPrice;

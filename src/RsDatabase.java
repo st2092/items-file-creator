@@ -1,13 +1,17 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class RsDatabase {
 	private static String name = "rsitems";
+	private static String tableName = "items";
 	private String url = "jdbc:mysql://localhost/?useSSL=false";
 	private String SHOW_DATABASES_FOR_RS = "SHOW DATABASES LIKE '" + name + "'";
+	private String USE_DATABASE = "USE " + name;
+	private String CREATE_TABLE = "CREATE TABLE ITEMS (id INTEGER not NULL, name VARCHAR(255), PRIMARY KEY (id))";
 	private String CREATE_DATABASE = "CREATE DATABASE " + name;
 	private String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
 	private Connection databaseConnection = null;
@@ -17,10 +21,14 @@ public class RsDatabase {
 			Class.forName(JDBC_DRIVER);
 			try {
 				if(databaseExists()) {
-					print("Database " + name + " exists");
+					selectRsDatabase();
+					if (!tableExists()) {
+						createTable();
+					}
 				} else {
 					print("Database " + name + " DNE");
 					createDatabase();
+					createTable();
 					print("Created database " + name);
 				}
 			} catch (SQLException se) {
@@ -54,6 +62,27 @@ public class RsDatabase {
 	}
 	
 	/**
+	 * Checks if the table exists in the database.
+	 * @return boolean	true, if the table exists; false, otherwise
+	 * @throws SQLException
+	 */
+	private boolean tableExists() throws SQLException {
+		if (databaseConnection == null) {
+			establishDatabaseConnection();
+		}
+		
+		ResultSet allTablesSet = databaseConnection.getMetaData().getTables(null, null, "ITEMS", new String[] {"TABLE"});
+		while(allTablesSet.next()) {
+			String nameOfTable = allTablesSet.getString("TABLE_NAME");
+			if (nameOfTable.equals(tableName)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
 	 * Establishes the connection to RS database.
 	 */
 	private void establishDatabaseConnection() throws SQLException {
@@ -76,6 +105,85 @@ public class RsDatabase {
 		if (!databaseExists()) {
 			sqlStatement.executeUpdate(CREATE_DATABASE);
 		}
+	}
+	
+	/**
+	 * Creates the table for items if the table does not exist in the database yet.
+	 * @throws SQLException
+	 */
+	private void createTable() throws SQLException {
+		if (databaseConnection == null) {
+			establishDatabaseConnection();
+		}
+		
+		Statement sqlStatement = databaseConnection.createStatement();
+		
+		if (!tableExists()) {
+			sqlStatement.executeUpdate(CREATE_TABLE);
+			print("Created table for items.");
+		}
+	}
+	
+	/**
+	 * Selects the RS item database.
+	 * @throws SQLException
+	 */
+	private void selectRsDatabase() throws SQLException {
+		if (databaseConnection == null) {
+			establishDatabaseConnection();
+		}
+		
+		Statement sqlStatement = databaseConnection.createStatement();
+		sqlStatement.executeUpdate(USE_DATABASE);
+	}
+	
+	/**
+	 * Adds an entry into the database table pertaining to the id item and name.
+	 * @param name	name of the item
+	 * @param id	id of the item
+	 * @throws SQLException 
+	 */
+	public void addItem(String name, int id) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		if (databaseExists() && tableExists() && !containsItem(id)) {
+			String query = " insert into items (id, name)" + " values (?, ?)";
+			PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+			preparedStatement.setLong(1, id);
+			preparedStatement.setString(2, name);
+			
+			preparedStatement.execute();
+			
+			print("Added (" + id + ", " + name + ") into table.");
+		}
+	}
+	
+	/**
+	 * Returns whether the item is already in the database.
+	 * @param itemId	the id of the item
+	 * @return boolean	true, if the item id is in the database table; false, otherwise
+	 * @throws SQLException
+	 */
+	public boolean containsItem(int itemId) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT id FROM ITEMS WHERE id = " + itemId;
+		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = idQuery.executeQuery(query);
+		while (results.next()) {
+			int id = results.getInt(1);
+			if (id == itemId) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private <T> void print(T message) {
