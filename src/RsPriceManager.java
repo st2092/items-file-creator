@@ -18,6 +18,8 @@ public class RsPriceManager {
     private static String API_RESPONSE_ID = "id";
     private static String API_RESPONSE_PRICE = "price";
     private static String API_RESPONSE_NAME = "name";
+    private static String API_RESPONSE_ICON = "icon";
+    private static String API_RESPONSE_ICON_LARGE = "icon_large";
     private static String API_RESPONSE_CURRENT_PRICE = "current";
     private RsDatabase database;
     private static int ITEMS_PER_PAGE = 12;
@@ -27,6 +29,30 @@ public class RsPriceManager {
         database = new RsDatabase();
     }
 
+    public static String getApiReponseId() {
+    	return API_RESPONSE_ID;
+    }
+    
+    public static String getApiReponsePrice() {
+    	return API_RESPONSE_PRICE;
+    }
+    
+    public static String getApiResponseName() {
+    	return API_RESPONSE_NAME;
+    }
+    
+    public static String getApiResponseIcon() {
+    	return API_RESPONSE_ICON;
+    }
+    
+    public static String getApiResponseIconLarge() {
+    	return API_RESPONSE_ICON_LARGE;
+    }
+    
+    public static String getApiResponseCurrentPrice() {
+    	return API_RESPONSE_CURRENT_PRICE;
+    }
+    
     /**
      * Sends a query for the item associated with the item ID to the RS API.
      * @param itemID	the id of the item to get information about
@@ -46,6 +72,33 @@ public class RsPriceManager {
         	// item ID is invalid
         	print(itemID + " is an invalid ID.");
         }
+    }
+    
+    /**
+     * Returns an Item object that holds detailed information about the item pertaining to the passed in name.
+     * @param itemName		name of the item to find out about
+     * @return Item			object containing detailed information about the item from the RS API
+     */
+    public Item getInfoOnItem(String itemName) {
+    	try {
+			if (database.containsItem(itemName)) {
+				
+				JsonObject rsApiResponse = getItemDataFromApi(database.getId(itemName));
+				if (rsApiResponse != null) {
+					JsonObject itemInfoObj = rsApiResponse.getJsonObject("item");
+					Item item = new Item(itemInfoObj);
+					return item;
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return null;
     }
     
     /**
@@ -120,6 +173,8 @@ public class RsPriceManager {
     
     /**
      * Iterate through every item in RS database and add it into local database.
+     * Note: The total items found is going to be more than the expected because of duplicates.
+     * When a category and alphabet have multiple pages page 0 and 1 tend to be duplicate.
      * @throws MalformedURLException
      * @throws InterruptedException
      * @throws SQLException 
@@ -185,6 +240,7 @@ public class RsPriceManager {
     		int itemCount = categoryAlphaMap.get(key);
     		if (itemCount > 0) {
     			ArrayList<Item> itemsWithAlpha = findItemsWithAlphaFromApi(categoryNum, itemCount, key);
+    			print("Found " + itemsWithAlpha.size() + " items.");
     			items.addAll(itemsWithAlpha);
     		}
      	}
@@ -202,7 +258,12 @@ public class RsPriceManager {
      * @throws InterruptedException
      */
     private ArrayList<Item> findItemsWithAlphaFromApi(int category, int totalItems, String alpha) throws MalformedURLException, InterruptedException {
-    	int pages = (int) Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+    	int pages = 0;
+    	if (totalItems > ITEMS_PER_PAGE) {
+    		// round up by one page
+    		pages = (int) Math.ceil((double)totalItems / (double)ITEMS_PER_PAGE);
+    	}
+    	
     	ArrayList<Item> itemsWithAlpha = new ArrayList<Item>();
     	
     	for (int page = 0; page <= pages; page++) {
@@ -300,96 +361,5 @@ public class RsPriceManager {
     	}
     	
     	return items;
-    }
-    
-    /**
-     * Item class to represent a RS item. Contains values such as the id, name, prices, and margins for buying and selling.
-     */
-    class Item {
-    	private int id;
-    	private String name;
-    	private long currentPrice;
-    	private int buyPrice;
-    	private int buyMargin;
-    	private int sellPrice;
-    	private int sellMargin;
-    	
-    	public Item(JsonObject itemInfoObj) {
-    		this.id = itemInfoObj.getInt(API_RESPONSE_ID);
-    		this.name = itemInfoObj.getString(API_RESPONSE_NAME);
-    		
-    		if (priceIsInStringFormat(itemInfoObj)) {
-    			String priceFromApi = itemInfoObj.getJsonObject(API_RESPONSE_CURRENT_PRICE).getString(API_RESPONSE_PRICE);
-    			this.currentPrice = convertPriceFromApiToLong(priceFromApi);
-    		} else {
-    			// already a number; no need to convert
-    			this.currentPrice = itemInfoObj.getJsonObject(API_RESPONSE_CURRENT_PRICE).getInt(API_RESPONSE_PRICE);
-    		}
-    	}
-    	
-    	public int getId() {
-    		return id;
-    	}
-    	
-    	public String getName() {
-    		return name;
-    	}
-    	
-    	public long getPrice() {
-    		return currentPrice;
-    	}
-    	
-    	public void setId(int newId) {
-    		id = newId;
-    	}
-    	
-    	public void setName(String newName) {
-    		name = newName;
-    	}
-    	
-    	public void setPrice(String newPrice) {
-    		currentPrice = Long.parseLong(newPrice);
-    	}
-    	
-    	public String getInfo() {
-    		String info = id + ", " + name + "\n" + "Current price: " + currentPrice;
-    		return info;
-    	}
-    	
-    	/**
-    	 * Determines if the price result from the RS API is in string format.
-    	 * @param resultFromApi		Json object results from the RS API
-    	 * @return boolean			true, if the price is in String format; false, otherwise
-    	 */
-    	private boolean priceIsInStringFormat(JsonObject resultFromApi) {
-    		return (resultFromApi.getJsonObject(API_RESPONSE_CURRENT_PRICE).get(API_RESPONSE_PRICE).getValueType() == JsonValue.ValueType.STRING);
-    	}
-    	
-    	/**
-    	 * Converts the price from the API into an long.
-    	 * @param priceStr	the price result from the RS API
-    	 * @return long		number representation of the price result from RS API
-    	 */
-    	private long convertPriceFromApiToLong(String priceStr) {
-    		long price = -1;
-    		if (priceStr.contains(".") && priceStr.contains("k")) {
-    			// e.g. 10.1k
-    			price = Long.parseLong(priceStr.replace(".", "").replace(",", "").replace("k", "00"));
-    		} else if (priceStr.contains(",")) {
-    			// e.g. 9,700
-    			price = Long.parseLong(priceStr.replace(",", ""));
-    		} else if (priceStr.contains(".") && priceStr.contains("m")) {
-    			// e.g. 12.8m
-    			price = Long.parseLong(priceStr.replace(".", "").replace(",", "").replace("m", "00000"));
-    		} else if (priceStr.contains(".") && priceStr.contains("b")) {
-    			// e.g. 2.1b
-    			price = Long.parseLong(priceStr.replace(".", "").replace(",", "").replace("b", "00000000").trim());
-    		} else {
-    			// e.g 100
-    			price = Long.parseLong(priceStr);
-    		}
-    		
-    		return price;
-    	}
     }
 }
