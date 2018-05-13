@@ -18,21 +18,6 @@ public class DatabaseUpdateProgressBar extends JFrame {
 	private JProgressBar progressBar;
 	private String defaultStatusText = "Updating database in progress...";
 	
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					DatabaseUpdateProgressBar frame = new DatabaseUpdateProgressBar();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
 
 	/**
 	 * Create the frame.

@@ -29,7 +29,6 @@ public class RsPriceManager {
     private int expectedTotalItems = 0;
     private SoftReference<DatabaseUpdateProgressBar> progressUi;
     
-    
     /* RS category constants */
     private final static String CATEGORY_MISC = "Miscellaneous";
     private final static String CATEGORY_AMMO = "Ammo";
@@ -69,7 +68,6 @@ public class RsPriceManager {
     private final static String CATEGORY_TOOLS_CONTAINERS = "Tools and container";
     private final static String CATEGORY_WOODCUT_PRODUCT = "Woodcutting product";
     private final static String CATEGORY_POCKET_ITEM = "Pocket items";
-    
     
     private final static int CATEGORY_MISC_ID = 0;
     private final static int CATEGORY_AMMO_ID = 1;
