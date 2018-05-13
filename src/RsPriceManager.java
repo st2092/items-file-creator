@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.io.*;
+import java.lang.ref.SoftReference;
+
 import javax.json.*;
 
 public class RsPriceManager {
@@ -12,6 +14,7 @@ public class RsPriceManager {
     private static String RS_RUNEDATE_URL = "http://secure.runescape.com/m=itemdb_rs/api/info.json";
     private static String RS_CATEGORY_API_URL = "http://services.runescape.com/m=itemdb_rs/api/catalogue/category.json?category=";
     private static String RS_ITEMS_API_BASE_URL = "http://services.runescape.com/m=itemdb_rs/api/catalogue/items.json?category=X&alpha=Y&page=Z";
+    private static HashMap<Integer, String> categoriesMap;
     private static int NUM_CATEGORIES = 37;
     private static int NATURE_RUNE_ID = 561;
     private static int GE_UPDATE_CHECK_ITEM = NATURE_RUNE_ID;
@@ -24,9 +27,92 @@ public class RsPriceManager {
     private RsDatabase database;
     private static int ITEMS_PER_PAGE = 12;
     private int expectedTotalItems = 0;
+    private SoftReference<DatabaseUpdateProgressBar> progressUi;
+    
+    
+    /* RS category constants */
+    private final static String CATEGORY_MISC = "Miscellaneous";
+    private final static String CATEGORY_AMMO = "Ammo";
+    private final static String CATEGORY_ARROWS = "Arrows";
+    private final static String CATEGORY_BOLTS = "Bolts";
+    private final static String CATEGORY_CONSTRUCT_MATS = "Construction materials";
+    private final static String CATEGORY_CONSTRUCT_PROJS = "Construction projects";
+    private final static String CATEGORY_COOKING_INGRED = "Cooking ingredients";
+    private final static String CATEGORY_COSTUMES = "Costumes";
+    private final static String CATEGORY_CRAFT_MATS = "Crafting materials";
+    private final static String CATEGORY_FAMILIARS = "Familiars";
+    private final static String CATEGORY_FARM_PRODUCE = "Farming produce";
+    private final static String CATEGORY_FLETCH_MATS = "Fletching materials";
+    private final static String CATEGORY_FOOD_DRINK = "Food and drink";
+    private final static String CATEGORY_HERB_MATS = "Herblore Materials";
+    private final static String CATEGORY_HUNT_EQUIPMENT = "Hunting equipment";
+    private final static String CATEGORY_HUNT_PRODUCE = "Hunting produce";
+    private final static String CATEGORY_JEWELLERY = "Jewellery";
+    private final static String CATEGORY_MAGE_ARMOR = "Mage armour";
+    private final static String CATEGORY_MAGE_WEAPONS = "Mage weapons";
+    private final static String CATEGORY_MELEE_ARM_LOW = "Melee armour - low level";
+    private final static String CATEGORY_MELEE_ARM_MID = "Melee armour - mid level";
+    private final static String CATEGORY_MELEE_ARM_HIGH = "Melee armour - high level";
+    private final static String CATEGORY_MELEE_WEAPS_LOW = "Melee weapons - low level";
+    private final static String CATEGORY_MELEE_WEAPS_MID = "Melee weapons - mid level";
+    private final static String CATEGORY_MELEE_WEAPS_HIGH = "Melee weapons - high level";
+    private final static String CATEGORY_MINING_SMITHING = "Mining and smithing";
+    private final static String CATEGORY_POTIONS = "Potions";
+    private final static String CATEGORY_PRAYER_ARM = "Prayer armour";
+    private final static String CATEGORY_PRAYER_MATS = "Prayer materials";
+    private final static String CATEGORY_RANGE_ARM = "Range armour";
+    private final static String CATEGORY_RANGE_WEAPS = "Range weapons";
+    private final static String CATEGORY_RUNECRAFTING = "Runecrafting";
+    private final static String CATEGORY_RUNES_SPELLS_TELE = "Runes, Spells, and Teleports";
+    private final static String CATEGORY_SEEDS = "Seeds";
+    private final static String CATEGORY_SUMMON_SCROLLS = "Summoning scrolls";
+    private final static String CATEGORY_TOOLS_CONTAINERS = "Tools and container";
+    private final static String CATEGORY_WOODCUT_PRODUCT = "Woodcutting product";
+    private final static String CATEGORY_POCKET_ITEM = "Pocket items";
+    
+    
+    private final static int CATEGORY_MISC_ID = 0;
+    private final static int CATEGORY_AMMO_ID = 1;
+    private final static int CATEGORY_ARROWS_ID = 2;
+    private final static int CATEGORY_BOLTS_ID = 3;
+    private final static int CATEGORY_CONSTRUCT_MATS_ID = 4;
+    private final static int CATEGORY_CONSTRUCT_PROJS_ID = 5;
+    private final static int CATEGORY_COOKING_INGRED_ID = 6;
+    private final static int CATEGORY_COSTUMES_ID = 7;
+    private final static int CATEGORY_CRAFT_MATS_ID = 8;
+    private final static int CATEGORY_FAMILIARS_ID = 9;
+    private final static int CATEGORY_FARM_PRODUCE_ID = 10;
+    private final static int CATEGORY_FLETCH_MATS_ID = 11;
+    private final static int CATEGORY_FOOD_DRINK_ID = 12;
+    private final static int CATEGORY_HERB_MATS_ID = 13;
+    private final static int CATEGORY_HUNT_EQUIPMENT_ID = 14;
+    private final static int CATEGORY_HUNT_PRODUCE_ID = 15;
+    private final static int CATEGORY_JEWELLERY_ID = 16;
+    private final static int CATEGORY_MAGE_ARMOR_ID = 17;
+    private final static int CATEGORY_MAGE_WEAPONS_ID = 18;
+    private final static int CATEGORY_MELEE_ARM_LOW_ID = 19;
+    private final static int CATEGORY_MELEE_ARM_MID_ID = 20;
+    private final static int CATEGORY_MELEE_ARM_HIGH_ID = 21;
+    private final static int CATEGORY_MELEE_WEAPS_LOW_ID = 22;
+    private final static int CATEGORY_MELEE_WEAPS_MID_ID = 23;
+    private final static int CATEGORY_MELEE_WEAPS_HIGH_ID = 24;
+    private final static int CATEGORY_MINING_SMITHING_ID = 25;
+    private final static int CATEGORY_POTIONS_ID = 26;
+    private final static int CATEGORY_PRAYER_ARM_ID = 27;
+    private final static int CATEGORY_PRAYER_MATS_ID = 28;
+    private final static int CATEGORY_RANGE_ARM_ID = 29;
+    private final static int CATEGORY_RANGE_WEAPS_ID = 30;
+    private final static int CATEGORY_RUNECRAFTING_ID = 31;
+    private final static int CATEGORY_RUNES_SPELLS_TELE_ID = 32;
+    private final static int CATEGORY_SEEDS_ID = 33;
+    private final static int CATEGORY_SUMMON_SCROLLS_ID = 34;
+    private final static int CATEGORY_TOOLS_CONTAINERS_ID = 35;
+    private final static int CATEGORY_WOODCUT_PRODUCT_ID = 36;
+    private final static int CATEGORY_POCKET_ITEM_ID = 37;
     
     public RsPriceManager() throws SQLException {
         database = new RsDatabase();
+        loadCategoriesMap();
     }
 
     public static String getApiReponseId() {
@@ -184,6 +270,8 @@ public class RsPriceManager {
     	int totalItemsFound = 0;
     	for (int category = 0; category <= NUM_CATEGORIES; category++) {
     		print("Processing category #" + category);
+    		updateStatusWithCategory(category);
+    		
 	    	ArrayList<Item> itemsInCategory = findEveryItemInCategory(category);
 	    	print("Found " + itemsInCategory.size() + " items.");
 	    	for (Item item : itemsInCategory) {
@@ -191,8 +279,21 @@ public class RsPriceManager {
 	    		totalItemsFound++;
 	    	}
     	}
-    	
+    	signalUpdateCompleteForUi();
     	print("Found a total of " + totalItemsFound + " items out of " + expectedTotalItems + " items.");
+    }
+    
+    private void updateStatusWithCategory(int categoryId) {
+    	if (getProgressUi().get() != null) {
+    		String statusUpdate = "Updating " + categoriesMap.get(categoryId) + "...";
+    		getProgressUi().get().setStatusText(statusUpdate);
+    	}
+    }
+    
+    private void signalUpdateCompleteForUi() {
+    	if (getProgressUi().get() != null) {
+    		getProgressUi().get().complete();
+    	}
     }
     
     /**
@@ -240,7 +341,6 @@ public class RsPriceManager {
     		int itemCount = categoryAlphaMap.get(key);
     		if (itemCount > 0) {
     			ArrayList<Item> itemsWithAlpha = findItemsWithAlphaFromApi(categoryNum, itemCount, key);
-    			print("Found " + itemsWithAlpha.size() + " items.");
     			items.addAll(itemsWithAlpha);
     		}
      	}
@@ -362,4 +462,109 @@ public class RsPriceManager {
     	
     	return items;
     }
+
+    
+    private void loadCategoriesMap() {
+    	if (categoriesMap == null) {
+    		categoriesMap = new HashMap<Integer, String>();
+    	}
+    	
+    	categoriesMap.clear();
+    	
+    	for (int categoryId = 0; categoryId <= NUM_CATEGORIES; categoryId++) {
+    		String categoryName = getCategoryNameFromId(categoryId);
+    		categoriesMap.put(categoryId, categoryName);
+    	}
+    }
+    
+    private String getCategoryNameFromId(int categoryId) {
+    	switch (categoryId) {
+    	case CATEGORY_MISC_ID:
+    		return CATEGORY_MISC;
+    	case CATEGORY_AMMO_ID:
+    		return CATEGORY_AMMO;
+    	case CATEGORY_ARROWS_ID:
+    		return CATEGORY_ARROWS;
+    	case CATEGORY_BOLTS_ID:
+    		return CATEGORY_BOLTS;
+    	case CATEGORY_CONSTRUCT_MATS_ID:
+    		return CATEGORY_CONSTRUCT_MATS;
+    	case CATEGORY_CONSTRUCT_PROJS_ID:
+    		return CATEGORY_CONSTRUCT_PROJS;
+    	case CATEGORY_COOKING_INGRED_ID:
+    		return CATEGORY_COOKING_INGRED;
+    	case CATEGORY_COSTUMES_ID:
+    		return CATEGORY_COSTUMES;
+    	case CATEGORY_CRAFT_MATS_ID:
+    		return CATEGORY_CRAFT_MATS;
+    	case CATEGORY_FAMILIARS_ID:
+    		return CATEGORY_FAMILIARS;
+    	case CATEGORY_FARM_PRODUCE_ID:
+    		return CATEGORY_FARM_PRODUCE;
+    	case CATEGORY_FLETCH_MATS_ID:
+    		return CATEGORY_FLETCH_MATS;
+    	case CATEGORY_FOOD_DRINK_ID:
+    		return CATEGORY_FOOD_DRINK;
+    	case CATEGORY_HERB_MATS_ID:
+    		return CATEGORY_HERB_MATS;
+    	case CATEGORY_HUNT_EQUIPMENT_ID:
+    		return CATEGORY_HUNT_EQUIPMENT;
+    	case CATEGORY_HUNT_PRODUCE_ID:
+    		return CATEGORY_HUNT_PRODUCE;
+    	case CATEGORY_JEWELLERY_ID:
+    		return CATEGORY_JEWELLERY;
+    	case CATEGORY_MAGE_ARMOR_ID:
+    		return CATEGORY_MAGE_ARMOR;
+    	case CATEGORY_MAGE_WEAPONS_ID:
+    		return CATEGORY_MAGE_WEAPONS;
+    	case CATEGORY_MELEE_ARM_LOW_ID:
+    		return CATEGORY_MELEE_ARM_LOW;
+    	case CATEGORY_MELEE_ARM_MID_ID:
+    		return CATEGORY_MELEE_ARM_MID;
+    	case CATEGORY_MELEE_ARM_HIGH_ID:
+    		return CATEGORY_MELEE_ARM_HIGH;
+    	case CATEGORY_MELEE_WEAPS_LOW_ID:
+    		return CATEGORY_MELEE_WEAPS_LOW;
+    	case CATEGORY_MELEE_WEAPS_MID_ID:
+    		return CATEGORY_MELEE_WEAPS_MID;
+    	case CATEGORY_MELEE_WEAPS_HIGH_ID:
+    		return CATEGORY_MELEE_WEAPS_HIGH;
+    	case CATEGORY_MINING_SMITHING_ID:
+    		return CATEGORY_MINING_SMITHING;
+    	case CATEGORY_POTIONS_ID:
+    		return CATEGORY_POTIONS;
+    	case CATEGORY_PRAYER_ARM_ID:
+    		return CATEGORY_PRAYER_ARM;
+    	case CATEGORY_PRAYER_MATS_ID:
+    		return CATEGORY_PRAYER_MATS;
+    	case CATEGORY_RANGE_ARM_ID:
+    		return CATEGORY_RANGE_ARM;
+    	case CATEGORY_RANGE_WEAPS_ID:
+    		return CATEGORY_RANGE_WEAPS;
+    	case CATEGORY_RUNECRAFTING_ID:
+    		return CATEGORY_RUNECRAFTING;
+    	case CATEGORY_RUNES_SPELLS_TELE_ID:
+    		return CATEGORY_RUNES_SPELLS_TELE;
+    	case CATEGORY_SEEDS_ID:
+    		return CATEGORY_SEEDS;
+    	case CATEGORY_SUMMON_SCROLLS_ID:
+    		return CATEGORY_SUMMON_SCROLLS;
+    	case CATEGORY_TOOLS_CONTAINERS_ID:
+    		return CATEGORY_TOOLS_CONTAINERS;
+    	case CATEGORY_WOODCUT_PRODUCT_ID:
+    		return CATEGORY_WOODCUT_PRODUCT;
+    	case CATEGORY_POCKET_ITEM_ID:
+    		return CATEGORY_POCKET_ITEM;
+    	default:
+    		return null;
+    	}
+    }
+    
+	public SoftReference<DatabaseUpdateProgressBar> getProgressUi() {
+		return progressUi;
+	}
+
+	public void setProgressUi(SoftReference<DatabaseUpdateProgressBar> progressUi) {
+		this.progressUi = progressUi;
+	}
 }
