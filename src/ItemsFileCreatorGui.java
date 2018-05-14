@@ -40,6 +40,7 @@ public class ItemsFileCreatorGui extends JFrame {
 	private JButton btnDelete;
 	private RsPriceManager rsPriceManager;
 	private Thread databaseUpdateThread = null;
+	private ItemsFileManager itemsFileManager = null;
 	
 	/**
 	 * Launch the application.
@@ -66,19 +67,20 @@ public class ItemsFileCreatorGui extends JFrame {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
 		setBackground(Color.DARK_GRAY);
 		setTitle("Item Files Creator");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 420);
 		getContentPane().setLayout(null);
 		
-		String[] columns = {"Name","Buy Price","Buy Margin", "Sell Price", "Sell Margin"};
+		String[] columns = {"Name", "ID","Buy Price","Buy Margin", "Sell Price", "Sell Margin"};
 		
 		tableModel = new DefaultTableModel(null, columns);
 		table = new JTable(tableModel);
+		table.setEnabled(false);
 		table.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		table.setForeground(Color.BLACK);
-		table.setEnabled(false);
 		table.setRowSelectionAllowed(false);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setBounds(10, 12, 400, 200);
@@ -143,19 +145,20 @@ public class ItemsFileCreatorGui extends JFrame {
 		mnHelp.add(mntmInstructions);
 	}
 	
-	public void addNewRowToTable(String name, String buyPrice, String buyMargin, String sellPrice, String sellMargin) {
+	public void addNewRowToTable(String name, String id, String buyPrice, String buyMargin, String sellPrice, String sellMargin) {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
-		model.addRow(new Object[] {name, buyPrice, buyMargin, sellPrice, sellMargin});
+		model.addRow(new Object[] {name, id, buyPrice, buyMargin, sellPrice, sellMargin});
 	}
 	
 	public void addNewRowToTable(Item item) {
 		if (item != null) {
 			String name = item.getName();
+			String id = "" + item.getId();
 			String buyPrice = "" + item.getBuyPrice();
 			String buyMargin = "" + item.getBuyMargin();
 			String sellPrice = "" + item.getSellPrice();
 			String sellMargin = "" + item.getSellMargin();
-			addNewRowToTable(name, buyPrice, buyMargin, sellPrice, sellMargin);
+			addNewRowToTable(name, id, buyPrice, buyMargin, sellPrice, sellMargin);
 			checkToEnableDeleteButton();
 		}
 	}
@@ -202,7 +205,8 @@ public class ItemsFileCreatorGui extends JFrame {
 	}
 	
 	private void generateItemJsonFile() {
-		
+		itemsFileManager = new ItemsFileManager(table, rsPriceManager);
+		itemsFileManager.writeFile();
 	}
 	
 	private void promptDatabaseUpdateOption() {
