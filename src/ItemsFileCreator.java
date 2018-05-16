@@ -6,19 +6,10 @@ import java.util.concurrent.*;
 
 public class ItemsFileCreator {
 
-    public static void main(String[] args) throws SQLException, InterruptedException {
+    public static void mainProgress(String[] args) throws SQLException, InterruptedException {
     	RsPriceManager priceManager = new RsPriceManager();
-    	long minDelayBetweenApiCall = 5;	// 4 seconds get roughly 1k API calls before limit; 5 seconds get roughly 7k before limit
-    	int start = 57532;
-    	int end = 100000;
-
+    	
     	try {
-    		/*
-    		for (int i = start; i < end; i++) {
-    			priceManager.queryItemAndAddToDatabase(i);
-    			
-    			TimeUnit.SECONDS.sleep(minDelayBetweenApiCall);
-    		}*/
     		priceManager.update();
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block

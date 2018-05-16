@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class RsDatabase {
 	private static String name = "rsitems";
@@ -137,12 +138,6 @@ public class RsDatabase {
 		sqlStatement.executeUpdate(USE_DATABASE);
 	}
 	
-	/**
-	 * Adds an entry into the database table pertaining to the id item and name.
-	 * @param name	name of the item
-	 * @param id	id of the item
-	 * @throws SQLException 
-	 */
 	public void addItem(String name, int id) throws SQLException {
 		if (databaseConnection != null) {
 			establishDatabaseConnection();
@@ -152,8 +147,36 @@ public class RsDatabase {
 		if (databaseExists() && tableExists() && !containsItem(id)) {
 			String query = " insert into items (id, name)" + " values (?, ?)";
 			PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
-			preparedStatement.setLong(1, id);
+			preparedStatement.setInt(1, id);
 			preparedStatement.setString(2, name);
+			
+			preparedStatement.execute();
+			
+			print("Added (" + id + ", " + name + ") into table.");
+		}
+	}
+	
+	/**
+	 * Adds an entry into the database table pertaining to the id item and name.
+	 * @param name			name of the item
+	 * @param id			id of the item
+	 * @param iconUrl		the link to the item icon
+	 * @param iconBigUrl	the link to the item big icon
+	 * @throws SQLException 
+	 */
+	public void addItem(String name, int id, String iconUrl, String iconBigUrl) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		if (databaseExists() && tableExists() && !containsItem(id)) {
+			String query = " insert into items (id, name, icon, icon_big)" + " values (?, ?, ?, ?)";
+			PreparedStatement preparedStatement = databaseConnection.prepareStatement(query);
+			preparedStatement.setInt(1, id);
+			preparedStatement.setString(2, name);
+			preparedStatement.setString(3, iconUrl);
+			preparedStatement.setString(4, iconBigUrl);
 			
 			preparedStatement.execute();
 			
@@ -184,6 +207,138 @@ public class RsDatabase {
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Returns whether the item is already in the database.
+	 * @param itemName		the name of the item
+	 * @return boolean		true, if the item is in the database; false, otherwise
+	 * @throws SQLException
+	 */
+	public boolean containsItem(String itemName) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT name FROM items WHERE name = '" + itemName + "'";
+		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = idQuery.executeQuery(query);
+		while (results.next()) {
+			String name = results.getString(1);
+			if (name.equals(itemName)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public int getId(String itemName) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT id FROM items WHERE name = '" + itemName + "'";
+		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = idQuery.executeQuery(query);
+		while (results.next()) {
+			int id = results.getInt(1);
+			return id;
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Note: The icon url is based on time of access. So, the url in database will become outdated. That is there is no need to 
+	 * store the icon url in the database at all. To get the image, we will need to get it from a fresh URL.
+	 */
+	public String getItemIconUrl(int itemId) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT icon FROM ITEMS WHERE id = " + itemId;
+		PreparedStatement iconUrlQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = iconUrlQuery.executeQuery(query);
+		while (results.next()) {
+			return results.getString(1);
+		}
+		
+		return null;
+	}
+	
+	public String getItemIconUrl(String itemName) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT icon FROM items WHERE name = '" + itemName + "'";
+		PreparedStatement iconUrlQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = iconUrlQuery.executeQuery(query);
+		while (results.next()) {
+			return results.getString(1);	
+		}
+		
+		return null;
+	}
+	
+	public String getItemIconBigUrl(int itemId) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT icon_big FROM ITEMS WHERE id = " + itemId;
+		PreparedStatement iconUrlQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = iconUrlQuery.executeQuery(query);
+		while (results.next()) {
+			return results.getString(1);
+		}
+		
+		return null;
+	}
+	
+	public String getItemIconBigUrl(String itemName) throws SQLException {
+		if (databaseConnection != null) {
+			establishDatabaseConnection();
+			selectRsDatabase();
+		}
+		
+		String query = "SELECT icon_big FROM items WHERE name = '" + itemName + "'";
+		PreparedStatement iconUrlQuery = databaseConnection.prepareStatement(query);
+		ResultSet results = iconUrlQuery.executeQuery(query);
+		while (results.next()) {
+			return results.getString(1);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Get a list of all the items in the database.
+	 * @return ArrayList<String>	an array list of all the items in the RS database
+	 * @throws SQLException
+	 */
+	public ArrayList<String> getAllItemNames() throws SQLException {
+		ArrayList<String> items = new ArrayList<String>();
+		
+		if (databaseExists() && tableExists()) {
+			String query = "SELECT name from " + tableName;
+			PreparedStatement getAllItemsQuery = databaseConnection.prepareStatement(query);
+			ResultSet results = getAllItemsQuery.executeQuery(query);
+			
+			while(results.next()) {
+				String name = results.getString(1);
+				items.add(name);
+			}
+		}
+		
+		return items;
 	}
 	
 	private <T> void print(T message) {

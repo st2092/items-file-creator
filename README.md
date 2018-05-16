@@ -1,0 +1,31 @@
+# __Items File Creator For GE Notifier__
+
+This application is a companion application for the [GE Notifier](https://github.com/st2092/ge-notifier). Search for the item then enter the price you are looking to buy and sell at. Once you have all your items set, generate the items file and run the GE Notifier python script.
+
+**Note**: I am not responsible for any failed investments that occurred due to the usage of this project. It is only to help simplified the investment process.
+
+## __How To Use__
+
+Clone this repository and run the file ItemsFileCreatorGui.java.
+
+You'll see the main interface pop up.
+
+![Main Interface](/imgs/MainInterface.PNG)
+
+When you are using this application for the first time you must update the database. It is recommended that you only do this on first use or if new items are added into the game.
+
+![Updating Database](/imgs/UpdatingDatabase.gif)
+
+Once the database update is completed, you can begin adding items. Press the add button to bring up the add item interface. Enter your item and then press select. Set the buy, sell, and margin prices and add it.
+
+![Add Item Interface](/imgs/AddItemInterface.PNG)
+
+Once you have all the items you want to track added, you can use the generate button to generate the items file for your item set. The items.json file will be in the same folder where this project is. Copy the items file over to where the GE Notifier script is and you're set!
+
+![Generate Items File](/imgs/GenerateItemsFile.PNG)
+
+## __What You Need__
+To run this project, you will need to have the following installed:
+* Either Eclipse or Spring Tool Suite
+* [MySQL](https://dev.mysql.com/downloads/)
+* [MySQL driver For Java](https://dev.mysql.com/downloads/connector/j/)
