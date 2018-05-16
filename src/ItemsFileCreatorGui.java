@@ -204,9 +204,13 @@ public class ItemsFileCreatorGui extends JFrame {
 		}
 	}
 	
+	/**
+	 * Generates a items json file in the format that the GE Notifier uses based on the current table.
+	 */
 	private void generateItemJsonFile() {
 		itemsFileManager = new ItemsFileManager(table, rsPriceManager);
 		itemsFileManager.writeFile();
+		JOptionPane.showMessageDialog(null, "Successfully created items.json file.");
 	}
 	
 	private void promptDatabaseUpdateOption() {
@@ -220,6 +224,9 @@ public class ItemsFileCreatorGui extends JFrame {
 		}
 	}
 	
+	/**
+	 * Updates or create the RS database using MySQL.
+	 */
 	private void updateDatabase() {
 		if (rsPriceManager != null) {
 			try {

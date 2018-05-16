@@ -252,7 +252,7 @@ public class RsDatabase {
 	}
 	
 	/**
-	 * TODO: The icon url is based on time of access. So, the url in database will become outdated. That is there is no need to 
+	 * Note: The icon url is based on time of access. So, the url in database will become outdated. That is there is no need to 
 	 * store the icon url in the database at all. To get the image, we will need to get it from a fresh URL.
 	 */
 	public String getItemIconUrl(int itemId) throws SQLException {

@@ -109,6 +109,7 @@ public class ItemsFileManager {
 		}
 	}
 	
+	/* TODO: Add ability to parse an existing items file and load into GUI */
 	public JTable parseItemsFileAt(String fullPathToItemsFile) {
 		
 		return null;

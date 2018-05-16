@@ -209,12 +209,14 @@ public class AddItemGui extends JFrame {
 		mainInterfaceRef = new SoftReference(mainInterface);
 	}
 	
+	/**
+	 * Shows the detail of the item, such as the current price, icon and name.
+	 */
 	private void showItemDetails() {
 		String itemName = searchForItemTextField.getText().trim();
 		if (previousSearchedItemName.equals(itemName)) {
 			return;
 		}
-		print("Item entered: " + itemName);
 		try {
 			if (rsDatabase.containsItem(itemName)) {
 				itemNameEditorPane.setText(itemName);
@@ -229,6 +231,10 @@ public class AddItemGui extends JFrame {
 		}
 	}
 	
+	/**
+	 * Loads the item current price and icon into the GUI.
+	 * @param itemName	the name of the item
+	 */
 	private void loadItemIconAndPrice(String itemName) {
 		try {
 			if (!rsDatabase.containsItem(itemName)) {
@@ -257,6 +263,10 @@ public class AddItemGui extends JFrame {
 		}
 	}
 	
+	/**
+	 * Loads the item icon into the GUI.
+	 * @param itemName	the name of the item
+	 */
 	private void loadItemIcon(String itemName) {
 		try {
 			if (!rsDatabase.containsItem(itemName)) {
@@ -282,6 +292,9 @@ public class AddItemGui extends JFrame {
 		}
 	}
 	
+	/**
+	 * Add the current item as an entry in the items json file.
+	 */
 	private void addCurrentItem() {
 		if (!checkValidEntries()) {
 			JOptionPane.showMessageDialog(null, "One or more prices have not been set. Please check the prices entered.");
