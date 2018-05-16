@@ -45,6 +45,9 @@ public class ItemsFileManager {
 		this.rsPriceManager = rsPriceManager;
 	}
 	
+	/**
+	 * Generates the items json file based on the table's content. The file will be placed in the same directory as the program.
+	 */
 	public void writeFile() {
 		if (itemsTable == null || rsPriceManager == null) {
 			return;
@@ -61,13 +64,11 @@ public class ItemsFileManager {
 			int row = itemsTable.getRowCount();
 			int col = itemsTable.getColumnCount();
 			for (int i = 0; i < row; i++) {
-				print("row # " + i);
 				jsonGenerator.writeStartObject("item" + count);
 				for (int j = 0; j < col; j++) {
 					DefaultTableModel itemModel = (DefaultTableModel) itemsTable.getModel();
 					Object value = itemModel.getValueAt(i, j);
 					String colName = getColumnName(j);
-					print(colName + ": " + value);
 					
 					// cast to the correct type; only name would result in a string the rest are integers
 					if (colName.equals(NAME)) {
