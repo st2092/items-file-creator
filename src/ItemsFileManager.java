@@ -2,7 +2,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 import javax.json.Json;
-import javax.json.JsonValue;
 import javax.json.stream.JsonGenerator;
 import javax.json.stream.JsonGeneratorFactory;
 import javax.swing.JTable;

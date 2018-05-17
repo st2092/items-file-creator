@@ -9,6 +9,8 @@ import java.util.ArrayList;
 public class RsDatabase {
 	private static String name = "rsitems";
 	private static String tableName = "items";
+	private final String sqliteUrl = "jdbc:sqlite:rsitems.db";
+	private final String SQLITE_JDBC_DRIVER = "org.sqlite.JDBC";
 	private String url = "jdbc:mysql://localhost/?useSSL=false";
 	private String SHOW_DATABASES_FOR_RS = "SHOW DATABASES LIKE '" + name + "'";
 	private String USE_DATABASE = "USE " + name;
@@ -16,10 +18,11 @@ public class RsDatabase {
 	private String CREATE_DATABASE = "CREATE DATABASE " + name;
 	private String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
 	private Connection databaseConnection = null;
+	private final boolean IS_USING_MYSQL = false;
 	
 	public RsDatabase() {
 		try {
-			Class.forName(JDBC_DRIVER);
+			Class.forName(SQLITE_JDBC_DRIVER);
 			try {
 				if(databaseExists()) {
 					selectRsDatabase();
@@ -51,10 +54,17 @@ public class RsDatabase {
 			establishDatabaseConnection();
 		}
 		
-		ResultSet allDatabasesSet = databaseConnection.getMetaData().getCatalogs();
-		while (allDatabasesSet.next()) {
-			String databaseName = allDatabasesSet.getString(1);
-			if (databaseName.equals(name)) {
+		
+		if (IS_USING_MYSQL) {
+			ResultSet allDatabasesSet = databaseConnection.getMetaData().getCatalogs();
+			while (allDatabasesSet.next()) {
+				String databaseName = allDatabasesSet.getString(1);
+				if (databaseName.equals(name)) {
+					return true;
+				}
+			}
+		} else {
+			if (databaseConnection != null) {
 				return true;
 			}
 		}
@@ -67,19 +77,30 @@ public class RsDatabase {
 	 * @return boolean	true, if the table exists; false, otherwise
 	 * @throws SQLException
 	 */
-	private boolean tableExists() throws SQLException {
+	private boolean tableExists() throws SQLException{
 		if (databaseConnection == null) {
 			establishDatabaseConnection();
 		}
 		
-		ResultSet allTablesSet = databaseConnection.getMetaData().getTables(null, null, "ITEMS", new String[] {"TABLE"});
-		while(allTablesSet.next()) {
-			String nameOfTable = allTablesSet.getString("TABLE_NAME");
-			if (nameOfTable.equals(tableName)) {
+		if (IS_USING_MYSQL) {
+			ResultSet allTablesSet = databaseConnection.getMetaData().getTables(null, null, "ITEMS", new String[] {"TABLE"});
+			while(allTablesSet.next()) {
+				String nameOfTable = allTablesSet.getString("TABLE_NAME");
+				if (nameOfTable.equals(tableName)) {
+					return true;
+				}
+			}
+		} else {
+			try {
+				Statement sqlStatement = databaseConnection.createStatement();
+				String query = "SELECT * FROM " + tableName;
+				sqlStatement.executeQuery(query);
 				return true;
+			} catch (SQLException e) {
+				// sqlite throws an exception if table does not exist
+				return false;
 			}
 		}
-		
 		return false;
 	}
 	
@@ -88,7 +109,11 @@ public class RsDatabase {
 	 */
 	private void establishDatabaseConnection() throws SQLException {
 		if (databaseConnection == null) {
-			databaseConnection = DriverManager.getConnection(url, "root", "brightdevelopers");
+			if (IS_USING_MYSQL) {
+				databaseConnection = DriverManager.getConnection(url, "root", "brightdevelopers");
+			} else {
+				databaseConnection = DriverManager.getConnection(sqliteUrl);
+			}
 		}
 	}
 	
@@ -134,8 +159,10 @@ public class RsDatabase {
 			establishDatabaseConnection();
 		}
 		
-		Statement sqlStatement = databaseConnection.createStatement();
-		sqlStatement.executeUpdate(USE_DATABASE);
+		if (IS_USING_MYSQL) {
+			Statement sqlStatement = databaseConnection.createStatement();
+			sqlStatement.executeUpdate(USE_DATABASE);
+		}
 	}
 	
 	public void addItem(String name, int id) throws SQLException {
@@ -198,7 +225,12 @@ public class RsDatabase {
 		
 		String query = "SELECT id FROM ITEMS WHERE id = " + itemId;
 		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
-		ResultSet results = idQuery.executeQuery(query);
+		ResultSet results;
+		if (IS_USING_MYSQL) {
+			results = idQuery.executeQuery(query);
+		} else {
+			results = idQuery.executeQuery();
+		}
 		while (results.next()) {
 			int id = results.getInt(1);
 			if (id == itemId) {
@@ -223,7 +255,12 @@ public class RsDatabase {
 		
 		String query = "SELECT name FROM items WHERE name = '" + itemName + "'";
 		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
-		ResultSet results = idQuery.executeQuery(query);
+		ResultSet results;
+		if (IS_USING_MYSQL) {
+			results = idQuery.executeQuery(query);
+		} else {
+			results = idQuery.executeQuery();
+		}
 		while (results.next()) {
 			String name = results.getString(1);
 			if (name.equals(itemName)) {
@@ -242,7 +279,12 @@ public class RsDatabase {
 		
 		String query = "SELECT id FROM items WHERE name = '" + itemName + "'";
 		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
-		ResultSet results = idQuery.executeQuery(query);
+		ResultSet results;
+		if (IS_USING_MYSQL) {
+			results = idQuery.executeQuery(query);
+		} else {
+			results = idQuery.executeQuery();
+		}
 		while (results.next()) {
 			int id = results.getInt(1);
 			return id;
@@ -330,7 +372,13 @@ public class RsDatabase {
 		if (databaseExists() && tableExists()) {
 			String query = "SELECT name from " + tableName;
 			PreparedStatement getAllItemsQuery = databaseConnection.prepareStatement(query);
-			ResultSet results = getAllItemsQuery.executeQuery(query);
+			
+			ResultSet results;
+			if (IS_USING_MYSQL) {
+				results = getAllItemsQuery.executeQuery(query);
+			} else {
+				results = getAllItemsQuery.executeQuery();
+			}
 			
 			while(results.next()) {
 				String name = results.getString(1);

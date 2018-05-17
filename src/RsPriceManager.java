@@ -266,6 +266,7 @@ public class RsPriceManager {
     public void update() throws MalformedURLException, InterruptedException, SQLException {
     	print("Updating database...");
     	int totalItemsFound = 0;
+    	// NUM_CATEGORIES
     	for (int category = 0; category <= NUM_CATEGORIES; category++) {
     		print("Processing category #" + category);
     		updateStatusWithCategory(category);

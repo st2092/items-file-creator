@@ -27,5 +27,5 @@ Once you have all the items you want to track added, you can use the generate bu
 ## __What You Need__
 To run this project, you will need to have the following installed:
 * Either Eclipse or Spring Tool Suite
-* [MySQL](https://dev.mysql.com/downloads/)
-* [MySQL driver For Java](https://dev.mysql.com/downloads/connector/j/)
+* [MySQL](https://dev.mysql.com/downloads/)(Optional)
+* [MySQL driver For Java](https://dev.mysql.com/downloads/connector/j/)(Optional)
