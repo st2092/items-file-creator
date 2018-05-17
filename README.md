@@ -6,13 +6,15 @@ This application is a companion application for the [GE Notifier](https://github
 
 ## __How To Use__
 
-Clone this repository and run the file ItemsFileCreatorGui.java.
+Download the latest release from the releases tab.
+
+Unzip the downloaded release and run the GE-Notifier-Items-Generator jar file by double clicking it.
 
 You'll see the main interface pop up.
 
 ![Main Interface](/imgs/MainInterface.PNG)
 
-When you are using this application for the first time you must update the database. It is recommended that you only do this on first use or if new items are added into the game.
+When you are using this application for the first time you might need to update the database. It is recommended that you only do this if the items you are searching for are not available (i.e. new items added into the game).
 
 ![Updating Database](/imgs/UpdatingDatabase.gif)
 
