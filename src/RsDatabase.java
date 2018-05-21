@@ -253,7 +253,13 @@ public class RsDatabase {
 			selectRsDatabase();
 		}
 		
-		String query = "SELECT name FROM items WHERE name = '" + itemName + "'";
+		String itemNameQuery = itemName;
+		// special case; some items have ' in their name which need to be set to a literal
+		if (itemName.contains("'")) {
+			itemNameQuery = itemName.replace("'", "''");
+		}
+
+		String query = "SELECT name FROM items WHERE name = '" + itemNameQuery + "'";
 		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
 		ResultSet results;
 		if (IS_USING_MYSQL) {
@@ -277,6 +283,10 @@ public class RsDatabase {
 			selectRsDatabase();
 		}
 		
+		// special case; some items have ' in their name which need to be set to a literal 
+		if (itemName.contains("'")) {
+			itemName = itemName.replace("'", "''");
+		}
 		String query = "SELECT id FROM items WHERE name = '" + itemName + "'";
 		PreparedStatement idQuery = databaseConnection.prepareStatement(query);
 		ResultSet results;
