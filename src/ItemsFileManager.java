@@ -59,6 +59,13 @@ public class ItemsFileManager {
 			JsonGenerator jsonGenerator = jsonFactory.createGenerator(fileOutputStream);
 			jsonGenerator.writeStartObject();
 			
+			jsonGenerator.writeStartObject("type");
+			if (ItemsFileCreatorGui.VERSION == RsDatabase.RS3) {
+				jsonGenerator.write("version", 0);
+			} else {
+				jsonGenerator.write("version", 1);
+			}
+			jsonGenerator.writeEnd();
 			int count = 1;
 			int row = itemsTable.getRowCount();
 			int col = itemsTable.getColumnCount();

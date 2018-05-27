@@ -72,7 +72,11 @@ public class ItemsFileCreatorGui extends JFrame {
 		}
 		
 		setBackground(Color.DARK_GRAY);
-		setTitle("Item Files Creator");
+		if (VERSION == RsDatabase.RS3) {
+			setTitle("Item Files Creator");
+		} else {
+			setTitle("OSRS Item Files Creator");
+		}
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 600, 420);
 		getContentPane().setLayout(null);
