@@ -9,25 +9,25 @@ import java.lang.ref.SoftReference;
 import javax.json.*;
 
 public class RsPriceManager {
-    private static final long minDelayBetweenApiCall = 5;	// in seconds
+    protected static final long minDelayBetweenApiCall = 5;	// in seconds
 	private static String RS_GE_API_URL = "http://services.runescape.com/m=itemdb_rs/api/catalogue/detail.json?item=";
     private static String RS_RUNEDATE_URL = "http://secure.runescape.com/m=itemdb_rs/api/info.json";
     private static String RS_CATEGORY_API_URL = "http://services.runescape.com/m=itemdb_rs/api/catalogue/category.json?category=";
     private static String RS_ITEMS_API_BASE_URL = "http://services.runescape.com/m=itemdb_rs/api/catalogue/items.json?category=X&alpha=Y&page=Z";
-    private static HashMap<Integer, String> categoriesMap;
+    protected static HashMap<Integer, String> categoriesMap;
     private static int NUM_CATEGORIES = 37;
     private static int NATURE_RUNE_ID = 561;
     private static int GE_UPDATE_CHECK_ITEM = NATURE_RUNE_ID;
-    private static String API_RESPONSE_ID = "id";
-    private static String API_RESPONSE_PRICE = "price";
-    private static String API_RESPONSE_NAME = "name";
-    private static String API_RESPONSE_ICON = "icon";
-    private static String API_RESPONSE_ICON_LARGE = "icon_large";
-    private static String API_RESPONSE_CURRENT_PRICE = "current";
-    private RsDatabase database;
-    private static int ITEMS_PER_PAGE = 12;
-    private int expectedTotalItems = 0;
-    private SoftReference<DatabaseUpdateProgressBar> progressUi;
+    protected static String API_RESPONSE_ID = "id";
+    protected static String API_RESPONSE_PRICE = "price";
+    protected static String API_RESPONSE_NAME = "name";
+    protected static String API_RESPONSE_ICON = "icon";
+    protected static String API_RESPONSE_ICON_LARGE = "icon_large";
+    protected static String API_RESPONSE_CURRENT_PRICE = "current";
+    protected RsDatabase database;
+    protected static int ITEMS_PER_PAGE = 12;
+    protected int expectedTotalItems = 0;
+    protected SoftReference<DatabaseUpdateProgressBar> progressUi;
     
     /* RS category constants */
     private final static String CATEGORY_MISC = "Miscellaneous";
@@ -109,7 +109,7 @@ public class RsPriceManager {
     private final static int CATEGORY_POCKET_ITEM_ID = 37;
     
     public RsPriceManager() throws SQLException {
-        database = new RsDatabase();
+        database = new RsDatabase(RsDatabase.RS3);
         loadCategoriesMap();
     }
 
@@ -216,7 +216,7 @@ public class RsPriceManager {
      * @return JsonObject	the response from the RS API
      * @throws MalformedURLException
      */
-    private JsonObject getItemDataFromApi(int itemID) throws MalformedURLException {
+    protected JsonObject getItemDataFromApi(int itemID) throws MalformedURLException {
     	String itemQueryURL = RS_GE_API_URL + itemID;
         URL requestURL = new URL(itemQueryURL);
 		
@@ -238,7 +238,7 @@ public class RsPriceManager {
      * Prints out to console the information of the item retrieved from RS API.
      * @param jsonDataFromApi
      */
-    private void printItemSpecifics(JsonObject jsonDataFromApi) {
+    protected void printItemSpecifics(JsonObject jsonDataFromApi) {
     	JsonObject itemInfoObj = jsonDataFromApi.getJsonObject("item");
     	
     	if (itemInfoObj != null) {
@@ -251,7 +251,7 @@ public class RsPriceManager {
      * Generic print function to output to System.out.
      * @param message	what to print to System.out
      */
-    private <T> void print(T message) {
+    protected <T> void print(T message) {
     	System.out.println(message);
     }
     
@@ -266,7 +266,6 @@ public class RsPriceManager {
     public void update() throws MalformedURLException, InterruptedException, SQLException {
     	print("Updating database...");
     	int totalItemsFound = 0;
-    	// NUM_CATEGORIES
     	for (int category = 0; category <= NUM_CATEGORIES; category++) {
     		print("Processing category #" + category);
     		updateStatusWithCategory(category);
@@ -282,14 +281,14 @@ public class RsPriceManager {
     	print("Found a total of " + totalItemsFound + " items out of " + expectedTotalItems + " items.");
     }
     
-    private void updateStatusWithCategory(int categoryId) {
+    protected void updateStatusWithCategory(int categoryId) {
     	if (getProgressUi().get() != null) {
     		String statusUpdate = "Updating " + categoriesMap.get(categoryId) + "...";
     		getProgressUi().get().setStatusText(statusUpdate);
     	}
     }
     
-    private void signalUpdateCompleteForUi() {
+    protected void signalUpdateCompleteForUi() {
     	if (getProgressUi().get() != null) {
     		getProgressUi().get().complete();
     	}
@@ -302,7 +301,7 @@ public class RsPriceManager {
      * @return HashMap<String, Integer>		the hashmap that holds the number of items for each starting alphabet
      * @throws MalformedURLException
      */
-    private HashMap<String, Integer> getItemsInCategoryMap(int categoryNum) throws MalformedURLException {
+    protected HashMap<String, Integer> getItemsInCategoryMap(int categoryNum) throws MalformedURLException {
     	HashMap<String, Integer> categoryBreakDownMap = new HashMap<String, Integer>();
     	JsonObject categoryResponse = getCategoryResultFromApi(categoryNum);
     	int totalItemsInCategory = 0;
@@ -321,6 +320,7 @@ public class RsPriceManager {
     		}
     	}
     	
+    	print("Found " + totalItemsInCategory + " items in category #" + categoryNum);
     	expectedTotalItems += totalItemsInCategory;
     	return categoryBreakDownMap;
     }
@@ -332,13 +332,14 @@ public class RsPriceManager {
      * @throws MalformedURLException
      * @throws InterruptedException
      */
-    private ArrayList<Item> findEveryItemInCategory(int categoryNum) throws MalformedURLException, InterruptedException {
+    protected ArrayList<Item> findEveryItemInCategory(int categoryNum) throws MalformedURLException, InterruptedException {
     	ArrayList<Item> items = new ArrayList<Item>();
     	HashMap<String, Integer> categoryAlphaMap = getItemsInCategoryMap(categoryNum);
-    	
+
     	for(String key : categoryAlphaMap.keySet()) {
     		int itemCount = categoryAlphaMap.get(key);
     		if (itemCount > 0) {
+    			print("Category #" + categoryNum + ", Item Count: " + itemCount + ", Alpha: " + key);
     			ArrayList<Item> itemsWithAlpha = findItemsWithAlphaFromApi(categoryNum, itemCount, key);
     			items.addAll(itemsWithAlpha);
     		}
@@ -356,7 +357,7 @@ public class RsPriceManager {
      * @throws MalformedURLException
      * @throws InterruptedException
      */
-    private ArrayList<Item> findItemsWithAlphaFromApi(int category, int totalItems, String alpha) throws MalformedURLException, InterruptedException {
+    protected ArrayList<Item> findItemsWithAlphaFromApi(int category, int totalItems, String alpha) throws MalformedURLException, InterruptedException {
     	int pages = 0;
     	if (totalItems > ITEMS_PER_PAGE) {
     		// round up by one page
@@ -384,7 +385,7 @@ public class RsPriceManager {
      * @param pageNumber	the page number in the items that starts with alpha and in category
      * @return String		string version of the URL for RS API request
      */
-    private String getCategoryAlphaUrl(int category, String alpha, int pageNumber) {
+    protected String getCategoryAlphaUrl(int category, String alpha, int pageNumber) {
     	String categoryAlphaQuery = RS_ITEMS_API_BASE_URL;
     	if (alpha.equals("#")) {
     		alpha = "%23";
@@ -402,7 +403,7 @@ public class RsPriceManager {
      * @return JsonObject	raw json object that holds the response from the RS API category request
      * @throws MalformedURLException
      */
-    private JsonObject getCategoryResultFromApi(int categoryNum) throws MalformedURLException {
+    protected JsonObject getCategoryResultFromApi(int categoryNum) throws MalformedURLException {
     	String categoryQueryUrl = RS_CATEGORY_API_URL + categoryNum;
     	URL requestUrl = new URL (categoryQueryUrl);
     	
@@ -427,7 +428,7 @@ public class RsPriceManager {
      * @return JsonObject	the raw json object response from the API item page category request
      * @throws MalformedURLException
      */
-    private JsonObject getItemsPageResultFromApi(int category, String alpha, int page) throws MalformedURLException {
+    protected JsonObject getItemsPageResultFromApi(int category, String alpha, int page) throws MalformedURLException {
     	String categoryAlphaUrl = getCategoryAlphaUrl(category, alpha, page);
     	URL requestUrl = new URL(categoryAlphaUrl);
     	
@@ -449,7 +450,7 @@ public class RsPriceManager {
      * @param itemsPageResponseFromApi	JsonObject of the response from RS API for a category, alpha, page query
      * @return	ArrayList<Item>		array list of items from the API response
      */
-    private ArrayList<Item> extractItemsFromItemsPageResponse(JsonObject itemsPageResponseFromApi) {
+    protected ArrayList<Item> extractItemsFromItemsPageResponse(JsonObject itemsPageResponseFromApi) {
     	ArrayList<Item> items = new ArrayList<Item>();
     	if (itemsPageResponseFromApi != null) {
     		JsonArray itemsFromResponse = itemsPageResponseFromApi.getJsonArray("items");
@@ -463,7 +464,7 @@ public class RsPriceManager {
     }
 
     
-    private void loadCategoriesMap() {
+    protected void loadCategoriesMap() {
     	if (categoriesMap == null) {
     		categoriesMap = new HashMap<Integer, String>();
     	}
@@ -476,7 +477,7 @@ public class RsPriceManager {
     	}
     }
     
-    private String getCategoryNameFromId(int categoryId) {
+    protected String getCategoryNameFromId(int categoryId) {
     	switch (categoryId) {
     	case CATEGORY_MISC_ID:
     		return CATEGORY_MISC;
@@ -565,5 +566,13 @@ public class RsPriceManager {
 
 	public void setProgressUi(SoftReference<DatabaseUpdateProgressBar> progressUi) {
 		this.progressUi = progressUi;
+	}
+	
+	public int getType() {
+		return RsDatabase.RS3;
+	}
+	
+	public RsDatabase getRsDatabaseInstance() {
+		return database;
 	}
 }

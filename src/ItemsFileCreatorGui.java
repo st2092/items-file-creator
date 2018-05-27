@@ -37,6 +37,7 @@ public class ItemsFileCreatorGui extends JFrame {
 	private RsPriceManager rsPriceManager;
 	private Thread databaseUpdateThread = null;
 	private ItemsFileManager itemsFileManager = null;
+	public static final int VERSION = RsDatabase.OLD_SCHOOL_RS;
 	
 	/**
 	 * Launch the application.
@@ -59,7 +60,13 @@ public class ItemsFileCreatorGui extends JFrame {
 	 */
 	public ItemsFileCreatorGui() {
 		try {
-			rsPriceManager = new RsPriceManager();
+			if (VERSION == RsDatabase.RS3) {
+				print("RS3 Mode");
+				rsPriceManager = new RsPriceManager();
+			} else {
+				print("Old School RS Mode");
+				rsPriceManager = new OSRsPriceManager();
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

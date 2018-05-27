@@ -46,12 +46,16 @@ public class AddItemGui extends JFrame {
 	 */
 	public AddItemGui() {
 		try {
-			rsPriceManager = new RsPriceManager();
+			if (ItemsFileCreatorGui.VERSION == RsDatabase.RS3) {
+				rsPriceManager = new RsPriceManager();
+			} else {
+				rsPriceManager = new OSRsPriceManager();
+			}
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		rsDatabase = new RsDatabase();
+		rsDatabase = rsPriceManager.getRsDatabaseInstance();
 		
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 450, 300);

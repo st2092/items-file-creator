@@ -7,9 +7,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 public class RsDatabase {
+	public  static int RS3 = 0;
+	public  static int OLD_SCHOOL_RS = 1;
 	private static String name = "rsitems";
 	private static String tableName = "items";
-	private final String sqliteUrl = "jdbc:sqlite:rsitems.db";
+	private final String sqliteUrl = "jdbc:sqlite:";
 	private final String SQLITE_JDBC_DRIVER = "org.sqlite.JDBC";
 	private String url = "jdbc:mysql://localhost/?useSSL=false";
 	private String SHOW_DATABASES_FOR_RS = "SHOW DATABASES LIKE '" + name + "'";
@@ -20,7 +22,12 @@ public class RsDatabase {
 	private Connection databaseConnection = null;
 	private final boolean IS_USING_MYSQL = false;
 	
-	public RsDatabase() {
+	public RsDatabase(int type) {
+		if (type == OLD_SCHOOL_RS) {
+			name = "osrsitems";
+		}
+		print("Using database " + name);
+		
 		try {
 			Class.forName(SQLITE_JDBC_DRIVER);
 			try {
@@ -112,7 +119,8 @@ public class RsDatabase {
 			if (IS_USING_MYSQL) {
 				databaseConnection = DriverManager.getConnection(url, "root", "brightdevelopers");
 			} else {
-				databaseConnection = DriverManager.getConnection(sqliteUrl);
+				String databaseName = name + ".db";
+				databaseConnection = DriverManager.getConnection(sqliteUrl + databaseName);
 			}
 		}
 	}
